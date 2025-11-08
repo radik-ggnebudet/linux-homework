@@ -1,27 +1,29 @@
 #include <iostream>
-#include <fstream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 using namespace std;
 
 void copyFile(const char* src,const char* dst){
-    ifstream in(src,ios::in|ios::binary);
-    if(!in.is_open()){
+    int in=open(src,O_RDONLY);
+    if(in==-1){
         cout<<"Error: cannot open source file"<<endl;
         return;
     }
-    ofstream out(dst,ios::out|ios::binary|ios::trunc);
-    if(!out.is_open()){
+    int out=open(dst,O_WRONLY|O_CREAT|O_TRUNC,0644);
+    if(out==-1){
         cout<<"Error: cannot open destination file"<<endl;
-        in.close();
+        close(in);
         return;
     }
     const int size=1024;
     char buffer[size];
-    while(in.read(buffer,size)){
-        out.write(buffer,in.gcount());
+    ssize_t bytes;
+    while((bytes=read(in,buffer,size))>0){
+        write(out,buffer,bytes);
     }
-    out.write(buffer,in.gcount());
-    in.close();
-    out.close();
+    close(in);
+    close(out);
 }
 
 int main(int argc,char* argv[]){

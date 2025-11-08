@@ -51,8 +51,11 @@ int main(int argc, char* argv[]) {
         if (data_start == -1) {
             if (errno == ENXIO) {
                 hole_bytes += file_size - pos;
-                if (lseek(dest_fd, file_size - 1, SEEK_SET) != -1) {
-                    write(dest_fd, "", 1);
+                if (ftruncate(dest_fd, file_size) == -1) {
+                    cerr << "Error: Cannot truncate destination file" << endl;
+                    close(src_fd);
+                    close(dest_fd);
+                    return 1;
                 }
                 break;
             } else {
@@ -131,4 +134,3 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
